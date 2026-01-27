@@ -10,6 +10,7 @@ from datetime import datetime
 from collections import OrderedDict
 from bs4 import BeautifulSoup #html parser
 from interop.core import imaging
+from interop.py_interop_run import xml_file_not_found_exception
 
 
 class RunParser(object):
@@ -68,7 +69,7 @@ class RunParser(object):
             self.samplesheet = None
         try:
             self.interop_data = InterOpParser(self.path)
-        except OSError:
+        except (OSError, xml_file_not_found_exception):
             self.log.info(str(e))
             self.interop_data = None
 
