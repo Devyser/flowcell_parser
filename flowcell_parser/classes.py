@@ -69,7 +69,7 @@ class RunParser(object):
             self.samplesheet = None
         try:
             self.interop_data = InterOpParser(self.path)
-        except (OSError, xml_file_not_found_exception):
+        except (OSError, xml_file_not_found_exception) as e:
             self.log.info(str(e))
             self.interop_data = None
 
