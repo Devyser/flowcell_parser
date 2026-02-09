@@ -34,16 +34,6 @@ class RunParser(object):
 
     def parse(self, demultiplexingDir = 'Demultiplexing'):
         """Tries to parse as many files as possible from a run folder"""
-        # When demultiplexing with BCL Convert, e.g. used for MiSeq i100, the old reports can be produced with '--output-legacy-stats true',
-        # but they will end up in a different location. Also, BCL Convert uses a new sample sheet format.
-        pattern = r'(\d{6,8})_([ST-]*\w+\d+)_\d+_([AB]?)([A-Z0-9\-]+)'
-        pattern_match = re.match(pattern, os.path.basename(os.path.abspath(self.path)))
-        if pattern_match.group(2).startswith('SL'):
-            demultiplexingDir = os.path.join(demultiplexingDir, 'Reports', 'legacy')
-            samplesheet_parser = SampleSheetV2Parser
-        else:
-            samplesheet_parser = SampleSheetParser
-
         # Start with the files existing before demultiplexing, located directly in run folder
         rinfo_path = os.path.join(self.path, 'RunInfo.xml')
         rpar_path = os.path.join(self.path, 'runParameters.xml')
@@ -51,6 +41,22 @@ class RunParser(object):
             rpar_path = os.path.join(self.path, 'RunParameters.xml')
         ss_path = os.path.join(self.path, 'SampleSheet.csv')
         cycle_times_log = os.path.join(self.path, 'Logs', 'CycleTimes.txt')
+
+        # When demultiplexing with BCL Convert, e.g. used for MiSeq i100, the old reports can be produced with '--output-legacy-stats true',
+        # but they will end up in a different location. Also, BCL Convert uses a new sample sheet format.
+        pattern = r'(\d{6,8})_([ST-]*\w+\d+)_\d+_([AB]?)([A-Z0-9\-]+)'
+        pattern_match = re.match(pattern, os.path.basename(os.path.abspath(self.path)))
+        if pattern_match.group(2).startswith('SL'):
+            demultiplexingDir = os.path.join(demultiplexingDir, 'Reports', 'legacy')
+            samplesheet_parser = SampleSheetV2Parser
+            try:
+                self.interop_data = InterOpParser(self.path)
+            except (OSError, xml_file_not_found_exception) as e:
+                self.log.info(str(e))
+                self.interop_data = None
+        else:
+            samplesheet_parser = SampleSheetParser
+            self.interop_data = None
 
         try:
             self.runinfo = RunInfoParser(rinfo_path)
@@ -68,10 +74,10 @@ class RunParser(object):
             self.log.info(str(e))
             self.samplesheet = None
         try:
-            self.interop_data = InterOpParser(self.path)
-        except (OSError, xml_file_not_found_exception) as e:
+            self.time_cycles = CycleTimesParser(cycle_times_log)
+        except OSError as e:
             self.log.info(str(e))
-            self.interop_data = None
+            self.time_cycles = None
 
         # Continue with files generate post-demultiplexing and could thus potentially be replaced by reading from stats.json
         try:
@@ -107,11 +113,6 @@ class RunParser(object):
         except OSError as e:
             self.log.info(str(e))
             self.undet = None
-        try:
-            self.time_cycles = CycleTimesParser(cycle_times_log)
-        except OSError as e:
-            self.log.info(str(e))
-            self.time_cycles = None
         try:
             self.json_stats = StatsParser(json_path)
         except OSError as e:
