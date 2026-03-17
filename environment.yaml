@@ -4,5 +4,5 @@ channels:
   - defaults
 
 dependencies:
-  - conda-forge::python=3.9
+  - conda-forge::python=3.12
   - conda-forge::pip

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=71"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flowcell_parser"
+dynamic = ["version", "dependencies"]
+description = "Fetches data from demultiplexed flow cells"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Denis Moreno", email = "denis.moreno@scilifelab.se" }
+]
+
+[tool.setuptools]
+packages = { find = {} }
+
+[tool.setuptools.dynamic]
+version = { attr = "flowcell_parser.__version__" }
+dependencies = { file = "requirements.txt" }

@@ -11,7 +11,7 @@ on:
 jobs:
   pytest:
     name: run PyTest
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
     steps:
@@ -36,7 +36,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate testenv
-          python setup.py install 
+          pip install .
       # Run PyTest
       - name: Run PyTest
         id: pytest
